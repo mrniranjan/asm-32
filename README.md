@@ -1,4 +1,5 @@
-asm-32
-======
+### This is repository of assembly Language examples
 
-This repository contains some of the Assembly language Programs written in AT&T style. Architecture is x86. 
+* Most of the assembly language programs are my effort to learn Assembly Language, 
+* Most of the programs are written in AT&T Syntax
+
