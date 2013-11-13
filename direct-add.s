@@ -15,8 +15,8 @@ t2:
 .section .text
 .globl _start
 _start:
-mov t1,%bx  
-mov t2,%cx
-add %cx,%bx
-mov $1,%ax
-int $0x80
+mov t1,%bx  # we are passing the address where value 10 is stored to %bx, 
+mov t2,%cx  # we are passing the address where value 20 is stored to %cx
+add %cx,%bx # we add %bx, %cx and store the result in %bx
+mov $1,%ax  # we call exit system call
+int $0x80   # Please call Bruce wayne to run my program
