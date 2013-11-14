@@ -1,0 +1,347 @@
+Assembly Language Instructions:
+======================
+1.An assembly language has 2 parts:
+	Part1: Defines the operation to be performed and is represented by the memonic of the instruction:
+		example: movl %eax, %ebx
+		In the above example movl is the operation to be performed 
+	Part2: Defines the operands for the instruction
+
+2. Operands of Instructions are 2 Types:
+	Type1: Source Operands: Provides Input values to the operation to be performed.
+	Type: Destination Operands: Results of the operation are stored in destination Operands
+
+3. In an Instruction destination & Source operands:
+	A. May be same	: addl %ebx, %ebx (addl the current values of %ebx and store the result in %ebx)
+	B. May be different   : addl %ebx, %ecx (add the values in ebx and ecx and store the result in ecx)
+
+4. As instructions are assembled by the assembler, A track of Memory addresses of instructions are maintained. 
+
+5. Some instructions such as "jump" or "call" have the memory address of anohter instructions as argument. It's difficult for programmer to keep track of
+these addresses , So instructions are labelled, and this label is referred in Other instructions:
+
+1. .section .data
+2. .section .text
+3. .globl _start
+4. _start:
+5.        movl $1, %eax  
+6.        movl $100, %ebx 
+7,.       int $0x80      
+
+In the above code , the instructions from lines 5,6,7 are labelled with "_start": 
+
+6. _start defines the address of the instruction in line 5:
+
+Example:
+
+08048054 <_start>:
+ 8048054:       b8 01 00 00 00          mov    $0x1,%eax
+ 8048059:       bb 64 00 00 00          mov    $0x64,%ebx
+ 804805e:       cd 80                   int    $0x80
+ 
+7. An assembly instructions also several Non-Processor instructions used in the program, which are called pseudo-ops or assembler directives. 
+
+example: ".section data" , ".section .text"  etc.
+
+8. _start is a symbol to define address of the instruction in the program that is executed first. Thus the execution of the program always starts from location "_start" 
+and carries on till the program makes a call to exit system call in GNU/Linux
+
+Example:
+
+08048054 <_start>:
+ 8048054:       b8 01 00 00 00          mov    $0x1,%eax
+ 8048059:       bb 64 00 00 00          mov    $0x64,%ebx
+ 804805e:       cd 80                   int    $0x80
+ 
+ As you see from the above example: _start symbol is pointing to  "08058054", "08058054" is the starting addres of the first instruction to be executed that is Line:5
+
+Operand Sizes:
+==========
+1. In IA-32 Architecture: instructions can have operands of variable sizes. 
+	Example: 
+		i)8-bit operands	known as: byte
+		ii) 16-bit 			known as: word
+		iii)32-bit			known as: long
+
+	
+2. Instructions in IA32 architecture of 0,1 or 2 Operands
+
+3. Operands may be:
+	i) Registers		Example: movl %eax, %ebx
+	ii) Memory		Example: movl myval, %ebx
+	iii) Constants		Example: addl 5,%ebx
+
+4. Register operands can be: 
+	8-bit registers: al,ah,bl,bh,cl,ch,dl,dh	
+	16-bit registers: ax, bx,cx,dx,di,si,sp, bp
+	
+5. Instructions can have:
+	i) No operand
+	ii) Multiple Operands
+
+6. All instructions can have only 1 Memory operand. 
+
+	examples:
+	A.  if instruction has only 1 operand:
+		incl myval  (value in myval will be incremented by 1)
+	B. Multiple operands:
+		incl %ebx, myval
+
+7. For instructions which have 2 operands , they can have 1 memory , & other may be constant or register
+	examples: 
+	addl %ebx, myval
+	addl 5,myval
+
+Memory Model:
+===========
+1. Memory in a computer system can be thought as an Array of bytes:
+	
+|--------------------------------------------------------------------------------------------------------------------------------------------------|
+|   A	|   B	|   C	|    1	|   2	|   3	|    4	|   @	|   S	|   8	|   11	|   1	|  13	|  15	|  H	|  E	|   L	|   L	|   O |   B 	|  Y 	|  E	|
+|---0-----1-----2------3-----4-----5-----6------7-----8----9-----10----11----12---13---14----15----16----17---18----19---20---21--|
+
+Index of this array: (example, 0,1,2,3) are known as address:
+Value of the Array element : A, B,C are known as content of the memory location
+
+So Address 0,the value A is stored
+Address 1, Value B i stored
+Address 17, Value L is stored. 
+
+2. Instructions may have operands in the memory, so memory addresses of the operands are specified in the instruction, Ways to specify address in , instruction will
+be dealt later
+
+3. IA32 supports 2 kinds of Addressing mechanism
+	1. 16-bit wide: 
+	Leave this, Not Important
+	2. 32-bit wide addressing 
+4. OS ues only 1 kind of addressing mechanism., GNU/Linux uses 32-bit addressing Mechanism. In this addressing mechanism, the range of memory addressability
+is 2^32 bytes
+
+|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+|   A	|   B	|   C	|    1	|   2	|   3	|    4	|   @	|   S	|   8	|   11	|   1	|  13	|  15	|  H	|  E	|   L	|   L	|   O |   B 	|  Y 	|  E	|	|	|	|	|	| 
+|---0-----1-----2------3-----4-----5-----6------7-----8----9-----10----11----12---13---14----15----16----17---18----19---20---21------------------------------2^32-
+
+5. Operands can be of  1 or more size bytes:
+	If operand is 1 byte: 1 memory location is used
+	If operand is more than 1 byte, Multiple memory locations will be used. 
+	
+	Example: 16-bit operand will use 2 memory locations:
+
+Example: In the above diagram, to store HELLO, 5 Memory locations are used. 5 bytes are used. 
+
+6. The memory operands are specified using 2 Attributes:
+	A. Start Address (Specifically Mechanism to compute the start Address)
+	B. size 
+	
+7. 16-bit Operands has 2 bytes: The most significant byte and Least significant byte. 
+
+8. IA32 use Little-endian, LSB is stored in Lower Address. 
+
+9. Example:
+16-bit number: 0x1245	, So 0x45 will be stored in lower order : 0x23C8 , and 0x12 will be stored in 0x23C9
+
+|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+|   A	|   B	|   C	|    1	|   2	|   3	|    4	|   @	|   S	|   8	|   11	|   1	|  13	|  15	|  H	|  E	|   L	|   L	|   O |   B 	|  Y 	|  E	|	|	|	|	|	| 
+|---0-----1-----2------3-----4-----5-----6------7-----8----9-----10----11----12---13---14----15----16----17---18----19---20---21------------------------------2^32-
+
+In the above representation
+If the number 1513 has to be stored:
+
+Lowest address: 12: will have 13
+Next higher address: 13: will have 15
+===================================================================================================
+Operand Addressing:
+
+1. Instructions in IA32 processor operate on operands & generate at most 1 result. Results are then stored on memory or as specified in location
+
+Instruction----->Processor->(Get operands, as per instruction & do operation)
+				| Output
+			____|__________
+                        |                         |
+               Memory                    Registers
+
+2. Instructions can have :
+	A. No destination operand
+	B. Implied destination operand
+	C. 1 destination Operand 
+
+3. Instructions can have:
+	A. 0 Source operand
+	B. 1 Source operand
+	C. 2 source operands
+	
+4. Mechanism of addressing operands indicates the way operands are found during the execution of instructions . Also known as addressing mode
+of processors
+
+5. Addressing modes are encoded in instruction. During execution of instruction the actual values are taken using the addressing modes specified:
+
+6. Categories of operands:
+	A. Constant 
+		Example: add $5, %eax 
+	All constants have $ sign prefixed 
+	
+	B. Registers
+		examples: incl %eax, 
+		add %ebx, %ecx
+		movl %eax, %ebx
+	All registers in the instruction are prefixed with % 
+	
+	C. Memory
+		Examples: 
+		movl data_items(,%ecx,4), %eax
+		movl  data_items, %eax
+
+
+Different Addressing modes
+------------------------------------
+1. Immediate Addressing : All constant operations of an instruction are specified using the immediate addressing mode. Constant operands are
+prefixed with $sign
+
+Examples: 
+addl $5, %eax
+
+In the above example 5 is added to the value stored in %eax and result is saved in eax register
+
+cmpl $5, %eax
+In the above example 5 is compared with value stored in eax register and eflags register is used to store the result
+
+2. Register Addressing mode: 
+
+Register operands (%eax, %ebx) are specified in instruction by name of registers. 
+
+examples:
+addl %eax, %ebx
+cmpl %eax, %ebx
+movl %eax, %ebx
+32-bit registers: eax, ebx,ecx,edx,
+16-bit, ax,cx,dx,si,di,sp & bp 
+8-bit: al,ah, cl, ch, dl,dh 
+
+3. Memory Addressing: 
+	i)When an operand of the instruction is stored in memory, It is read from (or written to) to the memory during the execution 
+	ii) Instruction should also specify the method to compute memory address also known as effective address
+
+Methods to compute the address:	
+
+3.1: Direct Addressing:
+------------------------------
+1. Simplest method of Providing the address is to specify that address in the instruction:
+	Example: addl 0x8048054, %eax
+	In the above example 0x8048054 is theaddress in memory having a value 5(for example) which will be added to the contents of eax and the result tant
+	value is stored in eax
+	
+2. 	Since it's difficult to memorize the addresses , we use symbolic names for addresses , Linker that assins the final address before execution
+
+Example: addl data_items, %eax
+data_items is a symbolic name for an address that contains 5(for example) that will be added to eax
+
+3. Example: addl 20, %eax 
+
+In the above example there is no $ prefixed for 20, so it's treated as address, Since the second operand is %eax, which is 32-bit register, the first operand
+is also treated as 4 byte operands, So values stored from starting from 20,21,22,23 are fetched. 
+
+4. While using memory addressing, the effective address provides just the starting address of the operand in the memory. 
+
+5. The instruction should also provide the size of the operand , In most cases size of the operand is implicit
+Examples:
+	addl 20, %eax (In this case the size of the memory operand is implicit, which is actually based on 2nd operand)
+	movb 20, %al  (in this case the size of the memory opeand is 1 byte,)
+	incl 20 (In this case the size of the memory operand is 4 bytes starting from 20)
+	incb 20  (size of memory operand is 1 byte which address 20)
+
+Components of Effective Address
+------------------------------------------
+1. Effective address can be provided by specifying 4 different components:
+	A. 2 Registers
+	B. 2 constants
+
+2. Two Registers are used as "base" & "index" component  , while the constants are used as "scale" & "displacement" . 
+
+
+base(Register) ,  Index (Register), Scale (Constant), Displacement (Constant)
+
+3. Scale can have values: 	1,2,4,8
+
+4. Displacement can have values of : 8-bit or 32-bit
+
+5. From the 4 values we defined above (base, index,scale, displacement) up to 3 can be ommitted 
+
+6. Direct Addressing is an example where effective address is computed by omitting base, index & scale and only 32-bit displacement being used. 
+
+7. Any of the 8 General Purpose registers can be used for "base" component  (eax,ebx,ecx,edx,esi,ebp,esp,ebp)
+
+8. For Index only 7 General Purpose registers can be used : eax,ebx,ecx,edx,esi,edi,ebp. 
+
+9. Displacement is a signed Number: so values range from -128 to +127 
+
+10. In GNU/Linux Assembly language  Memory operand can be computed using below syntax:
+
+Effective address: displacement(base,index,scale)
+
+3.2 Indirect Addressing: (Base/Registers) Or Register Indirect method
+------------------------------------------------------------------------------------------
+
+1. If the memory operand is specified using just the base component (i.e only registers) 
+
+example:
+mov (%eax), %ebx 
+
+In the above example Memory address is stored in eax , size is 32-bit 
+add eax, (%ecx)
+
+Note: addl (%ecx), (%ebx) is not allowed as assembly instruction can have only 1 memory operand 
+
+Assume the memory image:
+
+| 0x50BF	| 0x50C0	| 0x50C1	| 0x50C2	| 0x50C3	|
+-------------------------------------------------------------------
+| 0x10	| 0xE3	|0x20	| 0x00	| 0x10	|
+-------------------------------------------------------------------
+
+Consider:
+	eax: 0x20 
+	ecx: 0x50C0
+	
+	Instruction addl %eax, (%ecx) 
+	The above causes 32-bit number from 0x50C0 to be read , and 0x20 be added to that value , and then stored back the result from 0x50C0
+	Since it's 32-bit so 0x50C0 to 0x50C3 will be read and also the same is used to store the result. 
+	 
+3.3 Base + Displacement:
+-------------------------------------
+
+1. If the memory operand is computed using base & Displacement , then 
+	effective address: displacement + base
+
+2. Example: addl 2(%ebp) 
+
+In the above example: displacement=2, base is ebp 
+
+3. Consider the below memory Image:
+
+| 25		| 26		| 27		| 28		| 29		|
+-------------------------------------------------------------------
+| 0x10	| 0xE3	|0x20	| 0x00	| 0x10	|
+-------------------------------------------------------------------
+
+If the ebp has 25 ,  then 25 is added to 2  , so the effective address is 27, since it's 32-bit register 4 bytes from 27 is read. 
+
+Consider example:
+
+addb 10, 2(%ebp)
+
+In the above example:  the effective address of 2nd operand is (if ebp is 25), 27 (25 + 2) , since the instruction has "movb" , then only 1 byte is read starting from 
+27 and added to 10 and result is stored in ebp 
+
+
+Example Code:
+
+.section .data
+var1:
+.int 25,27,28,29,30
+.section .text
+.globl _start
+        _start:
+                movl $var1, %ecx
+                movl 8(%ecx), %ebx
+                movl $1, %eax
+                int $0x80
+
