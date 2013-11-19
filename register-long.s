@@ -9,13 +9,13 @@ var1:
 .section .text
 .globl _start
 	_start:
-		movl $var1, %edi # copy the address that var represents to %edi
-		movl (%edi), %eax  # Get the first list element in  %eax
-		movl 4(%edi), %ebx # Get the 2nd list element in  %ebx
-		movl 8(%edi), %ecx # Get the 3rd list element in %ecx
+		movl $var1, %edi    # copy the address that var represents to %edi
+		movl (%edi), %eax   # Get the first list element in  %eax
+		movl 4(%edi), %ebx  # Get the 2nd list element in  %ebx
+		movl 8(%edi), %ecx  # Get the 3rd list element in %ecx
 		movl 12(%edi), %edx # Get the 4th list element in %ebx
-		movl $1, %eax 	 # call exit system call
-		int $0x80	#call bruce wayne
+		movl $1, %eax 	    # call exit system call
+		int $0x80	    #call bruce wayne
 
 # Run the program through gdb to get the values of registers eax,ebx,ecx,edx
 
