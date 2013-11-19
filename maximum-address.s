@@ -24,7 +24,6 @@ data_items:
 		movl %eax, %edx		# copy starting address to edx 
 		addl $52, %edx 		# starting address plus 52 is the ending address, 
 					# assuming we are counting the indexes from 0
-	
 		start_loop:
 			cmpl %eax, %edx		# we are comparing addresses 
 			je loop_exit		# if addresses are same exit
