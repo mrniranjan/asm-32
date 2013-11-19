@@ -229,7 +229,7 @@ Methods to compute the address:
 	In the above example 0x8048054 is theaddress in memory having a value 5(for example) which will be added to the contents of eax and the result tant
 	value is stored in eax
 	
-2. 	Since it's difficult to memorize the addresses , we use symbolic names for addresses , Linker that assins the final address before execution
+2. 	Since it's difficult to memorize the addresses , we use symbolic names for addresses , Linker then assigns the final address before execution
 
 Example: addl data_items, %eax
 data_items is a symbolic name for an address that contains 5(for example) that will be added to eax
@@ -255,7 +255,6 @@ Components of Effective Address
 	B. 2 constants
 
 2. Two Registers are used as "base" & "index" component  , while the constants are used as "scale" & "displacement" . 
-
 
 base(Register) ,  Index (Register), Scale (Constant), Displacement (Constant)
 
@@ -332,7 +331,7 @@ In the above example:  the effective address of 2nd operand is (if ebp is 25), 2
 27 and added to 10 and result is stored in ebp 
 
 
-Example Code:
+Example Code 1:
 
 .section .data
 var1:
@@ -344,4 +343,201 @@ var1:
                 movl 8(%ecx), %ebx
                 movl $1, %eax
                 int $0x80
+
+Example Code: 2
+----------------------
+.section .data
+var1:
+.long 25,26,27,28
+.section .text
+.globl _start
+        _start:
+                movl $var1, %edi 
+                movl (%edi), %eax
+                movl 4(%edi), %ebx 
+                movl 8(%edi), %ecx 
+                movl 12(%edi), %edx
+                movl $1, %eax    
+                int $0x80       
+====================================================================================================
+Index*Scale+ displacement:
+ 
+1. If the memory operand is specified using index,scale & displacement components, the effective address is computed by multiplying the index by scale 
+& then adding the displacement. 
+
+2. Scale can take values: 1,2,4,8 
+
+3. Index can have all General purpose registers except "esp"
+
+4. If an array is used where the size of the element is 1,2,4 or 8 bytes , then element of array can be accessed using this mode. 
+
+Consider Example:
+
+# Registers:
+# %edi points to starting address of an array
+# %esi will be used as index register
+
+.section .data
+var1:
+.int 10,11,12,13
+.section .text
+.globl _start
+        _start:
+                movl $var1, %edi			#we are passing address of var1[0] to %edi
+                						#Assume the address of var1[0]=134516928/0x80490c0 
+                						
+                movl $0, %esi          		 #Since Index should be a register, We access first element var[0], so esi gets 0
+                addl $1, var1(,%esi,4)  		#index(%ecx)=0,scale=4 , because 4 is total storage location taken by each element of array
+				                                #displacement=var1 i,e starting address(134516928)
+			                                        # var1(,%ecx,4) ==>> starting address(,0,4)
+                        			                #=>>displacement(startingaddres)[0+0*4]=> starting address(134516928)
+                        			                
+                        			                
+                movl (%edi), %eax			# here %edi=0x80490c0/134516928 , %eax will have 11
+
+                movl $1, %esi        			   #We need to move to next array element %esi=1
+                addl $1, var1(,%esi,4)  		  #displacment(starting address)[0+1*4]=>(starting address+4) now adding 1 to the value (134516928 + 4)
+                						  # 134516928 + 4=134516932, Value stored at address 134516932 is 11,  Add 1 to 11 and store it  back at 134516932
+                  		                                  # stored in (Starting address+4) 134516932, so 12 is stored 
+
+                movl 4(%edi), %ebx      		#copy the net result in %eax , edi=134516928, 4+134516928=134516932, value at 134516932 is 12 
+
+                movl $2, %esi           		#we move to var1[2] now, i.e 3rd element. 
+                addl $1, var1(,%esi,4)  		#displacement(0+2*4)  134516928(0+2*4) 134516928(0+8)=>134516928 + 8 => 134516936
+                						# Value stored at 134516936 is 12, Add 1 to 12 and result is stored back at 134516936 ie. 13. 
+
+                movl 8(%edi), %ecx			# Access 3rd element and store it in ecx. %edi=134516928, 134516928+8=134516936,i.e get value 13 and store it in ecx
+                
+                
+                movl $3, %esi         			# we move to var1[3] now
+                
+                addl $1, var1(,%esi,4)		# displacement=var1 (starting address), %esi=3(index), scale=4  
+                						#	134516928(0+3*4)
+                						# effective address=displacement+[base+index * scale]
+                						# EA=displacement+[0+3*4]
+                						# EA=displacement+[0+12] => displacement+12 134516928 + 12=134516940
+               movl 12(%edi), %edx		
+
+                movl $1, %eax
+                int $0x80
+
+Another Example:
+
+We are adding all the values in the array var1 and store it in %ebx, var1 is accessed using displacement(index*scale)
+.section .data
+var1:
+.int 10,11,12,13
+.section .text
+.globl _start
+        _start:
+                movl $var1, %edi
+                movl %edi, %ecx
+                movl $0, %esi   #Since Index should be a register, %esi will be index register
+                addl $12, %ecx  # we need ending address to come out of loop
+                movl (%edi), %ebx
+        start_loop:
+                cmpl %edi, %ecx
+                je loop_exit
+                incl %esi
+                addl var1(,%esi,4), %ebx
+                addl $4, %edi
+                jmp start_loop
+        loop_exit:
+                movl $1, %eax
+                int $0x80
+
+===================================================================================================                
+Base+index*scale:
+1. In this addressing mode, 3 components base, index & scale are provided and effective address is computed by the processor while executing the instruction. 
+
+2. Two components base & index are provided by registers , Scale is constant
+
+Examples:
+.section .data
+var1:
+.int 10,11,12,13
+.section .text
+.globl _start
+        _start:
+                movl $var1, %edi        #we copy the starting address in %edi
+                movl $0, %esi           #Since Index should be a register, The first element var[0], so ecx gets 0
+
+                addl $1, (%edi,%esi,4)  #index(%esi)=0,scale=4 , because 4 is total storage location taken by each element of array
+                                        #displacement=0 
+                                        # var1(%edi,%esi,4) ==>> starting address(starting address+0*4)
+                                        #[0+0*4]=> starting address=>%edi
+                movl (%edi), %eax
+                movl $1, %esi           #We need to move to next array element
+                addl $1, (%edi,%esi,4)  #[starting+1*4]=>(starting address+4) now adding 1 to the value
+                                        # stored in (Starting address+4)
+
+                movl 4(%edi), %ebx      #copy the net result in %eax
+
+                movl $2, %esi           #we move to var1[2] now
+                addl $1, (%edi,%esi,4)  #displacement(0+2*4)
+                movl 8(%edi), %ecx
+
+                movl $3, %esi           # we move to var1[3] now
+                addl $1, (%edi,%esi,4)
+                movl 12(%edi), %edx
+
+                movl $1, %eax
+                int $0x80
+
+====================================================================================================
+Base+Index*scale+Displacement:
+
+1. This mode of addressing in IA32 processors is most powerful mode, In this mode all the four components are specified & the effective address is computed
+using 2 additions & 1 multiplication 
+
+2. This addressing involves 2 registers and 2 constants
+3. Registers are used for address information
+4. Constants are used for displacement & scaling
+
+5. This addressing mode can be used to address an element from a 2-D Array 
+
+Example:
+
+Consider 2 * 4 Matrix as below:
+
+		j	0		1		2		3
+		-----------------------------------------------------
+	0	|	12	|	13	|	14	|	15	|
+i		------------------------------------------------------
+	1	|	16	|	17	|	18	|	19	|
+		------------------------------------------------------
+
+Size of the Array => 2 * 4 
+
+In memory the above array is stored in Row major format, in which the array elements are stored in memory in the row-first order.  Example as below:
+
+matrix		value	Address;
+----------------------------------------------
+A0,0	|	12	|	20
+A0,1	|	13	|	21
+A0,2	|	14	|	22
+A0,3	|	15	|	23
+A1,0	|	16	|	24
+A1,1	|	17	|	25
+A1,2	|	18	|	26
+A1,3	|	19	|	27
+
+Assuming the size of each element is denoted by "s"
+
+A[0][0] is denoted as "A" and size is 1 byte, then Address of A[0][1]=A +s ===> So if A[0][0]=20, then A[0][1]=>20+1=21
+
+Address of A[0][j]	is (A+j)*s, So address of A[0][n-1] or A[0][4-1] ==>A[0][3]= (A+j)*s=> (20+3)*1=> 20+3=23
+
+Each Row of the array occupies n*s bytes Which implies from the above example: each row occupies 4 bytes
+Address of Row 1 (j) will be A+n*s
+Address of first element of  Row i is A* i*n*s
+Generalized form of A[i][j] => A+i*n*s+j*s
+
+1 Registers is to keep i*n*s, this provides offset of the starting address of row i
+Index register is used to keep j
+
+s or size is represented by scale 
+
+Starting Address of array(A) can be given by displacement 
+
 
