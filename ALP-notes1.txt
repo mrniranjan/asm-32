@@ -540,4 +540,232 @@ s or size is represented by scale
 
 Starting Address of array(A) can be given by displacement 
 
+====================================================================================================
+Functions:
+------------
+1. To assist programmers in working together in groups, It is necessary to break programs apart into separate pieces,  Which communicate with each
+other through well-defined interfaces
 
+2. Functions are units of code that do a defined piece of work on specified types of data. 
+
+3. Data items(inputs) a function is given to process are called it's parameters
+
+4. A typical program is composed of thousands of functions, each with a small, well-defined task to perform. However ulitmately there are things that 
+one cannot write functions for which must be provided by the system. Those are called primitive functions. They are basics which everything else is built
+of. 
+
+Functions are composed of below Elements:
+--------------------------------------------------------
+A. Function Name:
+B. Function Parameters
+C. Local variables
+D. Static variables
+E. Global Variables
+F Return Address
+G. Return Value
+									---------------------------
+									|				|
+									|	Functions		|	
+									----------------------------
+											|
+|---------------------------------------------------------------------------------------------------------------------------------------------------------------|									
+		|				|			|			|			|			|				|
+	Function Name		Function 		      local		      static 	 	     Global		Return Address	Return Value
+					Parameters	      variables	     variables          variables
+
+
+A. Function name:
+-----------------------
+	i.	Functions name is a symbol that represents the address where the function's code starts
+	ii.	In ALP symbol is defined by typing the functions name followed by colon immediately before function's code. 
+	
+	Example:
+
+	.section .text
+	.globl _start
+		_start:		<-------------------_start is a function which symbolises address of the instruction "movl $101, %ebx"
+				movl $101, %ebx
+				movl $1,	%eax
+				int $0x80
+	objdump -d ./exit
+
+	./exit:     file format elf32-i386
+
+	Disassembly of section .text:
+
+	08048054 <_start>:
+	 8048054:       b8 01 00 00 00          mov    $0x1,%eax
+	 8048059:       bb 64 00 00 00          mov    $0x64,%ebx
+	 804805e:       cd 80                   int    $0x80
+	 
+	 As we can see from the above dissembly, _start points to Address 8048054 which is the address of the instruction "mov   $0x1,%eax"
+
+B. Function Paramters
+----------------------------
+	i.	A function's parameters are the data items that are explicitly given to the function for processing
+		example:
+			 sine(2) = 0.34
+			 
+			 sine is the name of the function
+			 2 is the paramter 
+	ii.	Some functions have many parameters
+	iii.	Some functions have no parameters
+
+C. local variables
+-----------------------
+	i.	Local variables are data storage that a function uses while processing
+	
+	ii.	This data storage  is thrown away when function execution is completed (or returned)
+	
+	iii.	It's like rough paper which we get everytime function is evoked, Once completed , the rough paper is discareded. 
+	
+	iv.	Local variables of a function cannot be accesssed by any other function 
+
+D. Static variables
+-------------------------
+	i.	Static Variables are data storage that function uses while processing
+
+	ii.	This data storage is not thrown away when function completes it's execution
+	
+	iii.	This data storage is re-used everytime the function is activated 
+	
+	iv.	This data stroage cannot be accessed outside of the function. 
+	
+	v.	This data storage should be used with caution
+
+E. Global Variables
+------------------------
+	i.	Global Variables are data storage that function uses while processing
+	
+	ii.	This data storage is available outside of the function execution, i.e this data storage is available to other functions also
+	
+	iii.	This data storage is thrown away when the whole program completes execution
+	
+	Examples:
+	
+	i.	A simple text editor may put the entire contents of the file it is working on a global variable so it doesn't have to be passed to every function that 
+	operates on it. 
+	
+	ii.	Configuration values are often stored in global variables.
+
+F. Return Address
+-----------------------
+	i.	Return Address is an invisible parameter 
+	
+	ii.	Return Address is not directly Used by the function during execution
+	
+	iii.	Return address is used to find where the processor should start executing after the function completes it's execution
+	
+	iv.	This is needed because function can be called to execute from different parts of the program , once the function completes execution, it should 
+		go back to where it was called from. 
+	
+	v.	In most programming languages, this parameter is passed automatically when the function is called
+
+G. Return Value
+---------------------
+	
+	i.	Return Value is main method of tranferring data back to main program
+	
+	ii.	Most programming languages allow a single return value for a program 
+	
+
+
+5. The above pieces of a function are mostly same for different programming languages , How each pieces are specified are different in each one. 
+
+6. The variables(local,global &  Static), Function Paramters & Return values are tranferred between functions vary from language to language. This variance 
+is called "calling convention"	
+
+7. Calling convention describes how functions expect to get & receive data when they are called
+
+8. Assembly language can use any calling convention 
+
+9. C calling Convention is mostly used 
+
+10. To understand how functions work, It's important to understand how "stack" work.  
+
+11. Each computer program that runs uses a region of memory called the stack to enable functions to work properly.
+
+Stack:
+--------
+	i.	Stack is a pile of papers on desk , which can be added to indefinitely 
+	
+	ii.	Things that we are working currently is always on the top. 
+
+	iii.	Computers have stack too, computers stack lives at the very top address of Memory 
+
+	iv.	we can add values (also called push) values on to the stack using instruction called "pushl" 
+	
+	v.	pushl pushes either a register(eax,ebx,ecx...etc) or value on to the top of the stack.
+	
+	vi.	Nomencalature used in stack like "top" is actually (physically) the bottom of the stack's Memory
+	
+		________________________________________________
+		|29 		|28		|27		|26		|25		|25	 	|
+		| ----------	| ----------	| --------	| ----------	| ----------	| ----------	| <--------Stack
+		|23		|22		|21		|20		|19		|18		|<--------------------------------Top
+		| ----------	| ----------	| ----------	| ----------	| ----------	| ----------	|
+		|17	@	|16	!	|15	F	|14	)	|13	G	|12	H	|
+		| ----------	| ----------	| ----------	| ----------	| ----------	| ----------	|
+		|11	H	|10	E	|9	L	|8	L	|7	O	|6	W	|
+		| ----------	| ----------	| ----------	| ----------	| ----------	| ----------	| 
+		|5	O	|4	R	|3	L	|2	D	|1	!	|0	!	|	
+		| ----------	| ----------	| ----------	| ----------	| ----------	| ----------	| 
+
+	vii. 	From the above Memory representation We can see that 
+		A. Memory addressing starts from 29 and moves down to 0 (more like fffffff to 0000000)
+		B. Top is bottom of the memory 
+		C. Memory grows Downwards
+ 
+	viii. When we are referring top of the	stack we are actually referring to bottom of the memory
+	
+	ix.	We can also remove values from the stack , which is called as "pop" , instruction used is "popl"
+	
+	x.	When we push a value on to the stack, the top of the stack moves to accomdate the addition value. 
+	
+	xi.	Stack can be kept on pushing until we hit our code or data. 
+	
+	xii. 	To know where the "top" of the stack is , we use a stack register %esp , which always points to the current top of the stack
+	
+	Examples:
+
+		--------------------------------------------------------------------------------
+		|29 	H	|28		|27		|26		|25		|25	 	|
+		| ----------	| ----------	| --------	| ----------	| ----------	| ----------	| <--------Stack
+		|23		|22		|21		|20		|19		|18		|
+		| ----------	| ----------	| ----------	| ----------	| ----------	| ----------	|
+			
+			In the above example We added H to the stack, So now top (%esp) points to address 29
+
+		--------------------------------------------------------------------------------
+		|29 	H	|28	E	|27		|26		|25		|25	 	|
+		| ----------	| ----------	| --------	| ----------	| ----------	| ----------	| <--------Stack
+		|23		|22		|21		|20		|19		|18		|
+		| ----------	| ----------	| ----------	| ----------	| ----------	| ----------	|			
+
+		We added(pushed) E to the stack, So now top (%esp) points to E
+		
+		--------------------------------------------------------------------------------
+		|29 	H	|28	E	|27	L	|26	L	|25	O	|25	W 	|
+		| ----------	| ----------	| --------	| ----------	| ----------	| ----------	| <--------Stack
+		|23	O	|22	R	|21	L	|20	D	|19		|18		|
+		| ----------	| ----------	| ----------	| ----------	| ----------	| ----------	|
+
+		As you can see from the above example we kept pushing characters to stack. 
+		Now top(%esp) of the stack points to Address 20 (or value D)				
+
+	xiii.	pushl instruction pushes 4 bytes of value on to the stack , Since we are moving down the memory , Pushing value is basically subtracting by 4 
+		when we do pushl, %esp gets subtracted by 4 , 
+		note: pushl (push long i.e 4 bytes)
+
+	xiv.	To  remove something from stack , we simply popl from the stack , which is basically adding 4 bytes to %esp
+
+	xv.	To access current value (or topmost value in stack) , We can access %esp register
+		
+		example:
+			movl (%esp), %eax
+		The above will move what ever value is in the top of the stack to %eax register
+		
+	xvi.	If we do the operation, 
+			movl %esp, %eax
+		The above will copy the address to which currently top points to %eax register. 
+		
