@@ -768,4 +768,240 @@ Stack:
 	xvi.	If we do the operation, 
 			movl %esp, %eax
 		The above will copy the address to which currently top points to %eax register. 
+====================================================================================================
+Chapter 3:	Basic Data Manipulation
+-----------------------------------------------------
+1. IA32 instructions can be divided in several categories:
+	A. Data manipulation
+	B. Data Movement etc. 
+	
+2. The most commonly used instruction in IA32 processors is "mov" instruction. 
+
+3. "mov" instruction can be used for following purposes:
+	-> initialize a register
+	-> initialize a memory location
+	-> copy a value from register to memory
+	-> copy value from memory to register
+	-> copy from register to register
+
+4. Syntax of "mov" instruction is as follows:
+	mov src, dest
+
+5. During the execution of the above instruction the value of the src operand is copied to "dest" operand. 
+
+6. "src" operand may be immediate constant in which case it causes initialization of "dest" operand
+
+7. IA32 processors also have an restriction on type of operands. like the instruction can have only 1 memory operand. So it cannot copy value 
+from a memory variable to another memory location. 
+
+8. To perform such an operation (memory to memory) more than 1 instruction has to be done. 
+
+	Example1:
+1		movl 0x100, %eax
+2		movl 0x200, %ebx
+3		movl %ebx, 0x100
+4		movl %eax, 0x200
+
+Assume %eax had the value: 0xabcdabcd, %ebx had 0xdeafdeaf prior to execution
+
+Memory Image Before execution:
+
+		0x100	0x101	0x102	0x103
+		0x10002000						<-----------Value
+		
+		0x200	0x201	0x202	0x203
+		0x30004000						<----------Value
+		
+After execution of line1:	%eax	- 0x10002000
+
+		0x100	0x101	0x102	0x103
+		0x10002000						<-----------Value
+		
+		0x200	0x201	0x202	0x203
+		0x30004000						<----------Value			
+
+After Execution of line2: %ebx	= 0x30004000
+		0x100	0x101	0x102	0x103
+		0x10002000						<-----------Value
+		
+		0x200	0x201	0x202	0x203
+		0x30004000						<----------Value		
+
+After execuion of Line3: %eax = 0x10002000, %ebx=0x30004000
+		0x100	0x101	0x102	0x103
+		0x30004000						<-----------Value
+		
+		0x200	0x201	0x202	0x203
+		0x30004000						<----------Value		
+After execuion of Line3: %eax = 0x10002000, %ebx=0x30004000
+		0x100	0x101	0x102	0x103
+		0x30004000						<-----------Value
+		
+		0x200	0x201	0x202	0x203
+		0x10002000						<----------Value						
+		
+As seen in the above example, initial contents of %eax and %ebx are overwritten. 
+
+	Example2:				A[1,2,3,4]
+	init:
+1		movl $0, %esi
+2		movl %esi, A(,%esi,4) 
+3		incl %esi
+4		movl %esi, A(,%esi,4)
+5		incl %esi
+6		movl %esi A(,%esi, 4)
+7		incl %esi
+8		movl %esi A(,%esi, 4)
+
+
+In the above program:			
+	-> %esi is used as index register
+	-> index i(%esi) is initialized to 0
+	-> we store this value in array A by accessing A[0] using base+index*scale 
+	->Since each element is 4 bytes, scale is 4 bytes. 
+
+Line 1:	 %esi=0
+
+Line 2:	%esi=0,  Memory location .base=0, index=0, scale=4 
+				Memory A[0+0*4] = A[0] , So copy 0 to A[0]
+
+Line 3:	%esi=1
+
+Line4 	%esi=1, Memory Location, base=0, index=1, scale=4
+				A[0+1*4] => A[4], So copy 1 to A[4]
+
+Line 5:	%esi=2
+
+Line 6: 	%esi=2, Memory location, base=0, index=2, scale=4
+			A[0+2*4]=>A[8], So copy 2 to A[8]
+
+Line 7	%esi=3
+
+Line 8:	%esi=3, Memory location: base=0, index=3, scale=4
+			A[0+3*4]=>A[12], So copy 3 to A[12]
+
+							
+9. IA32 processors also have an interesting instruction that exchanges the values of two operands 
+		xchg src, dest
+
+10. None of the two operands in the above instruction can be specified using immediate addressing (i.e we cannot use constants) and we can only use 
+1 memory operand
+
+	Example:
+1		xchg 0x100, %eax
+2		xchg 0x200, %eax
+3		xchg 0x100, %eax
+
+Prior to execution
+%eax=0x11223344
+
+		0x100	0x101	0x102	0x103
+		0x88	0x77	0x66	0x55	<-----------Value
+		
+		0x200	0x201	0x202	0x203
+		0xCC	0xBB	0x AA	0x99	<----------Value			
+		
+
+	
+After Line 1
+%eax=0x55667788
+		0x100	0x101	0x102	0x103
+		0x44	0x33	0x22	0x11		<-----------Value
+		
+		0x200	0x201	0x202	0x203
+		0xCC	0xBB	0x AA	0x99	<----------Value					
+
+After Line2
+
+%eax=0x99AABBCC
+		0x100	0x101	0x102	0x103
+		0x44	0x33	0x22	0x11		<-----------Value
+		
+		0x200	0x201	0x202	0x203
+		0x88	0x77	0x66	0x55	<----------Value					
+
+After Line3
+%eax=0x11223344
+
+		0x100	0x101	0x102	0x103
+		0xCC	0xBB	0xAA	0x99	<-----------Value
+		
+		0x200	0x201	0x202	0x203
+		0x88	0x77	0x66	0x55	<----------Value					
+
+11. IA32 Processors also provide an instruction to change the endianity of 32-bit number
+
+12. IA32 Processors implement little-endian storage for multi-byte data elements in the memory 
+
+13. In little-Endian Mode:
+	->Least Significant byte (LSB) is stored in lowest address
+	->The most significant byte (HSB/MSB) is stored in Highest Address of a memory
+	
+	Example:
+		Consider 0x100 has value 0x55667788
+		
+		LSB of the above value is 0x88, which is stored in 0x100
+		0x77 is stored in 0x101
+		0x66 stored in 0x102
+		0x55 stored in 0x55
+
+14. In big-Endian Mode bytes are stored in reverse order:
+	->Least significant byte (LSB) is stored in Highest address
+	->Most significant byte is stored in Lowest address of Memory
+	
+	example 0x100 has 0x55667788
+		LSB is 0x88, which is stored in 0x103
+		0x77 is stored in 0x102
+		0x66 is stored in 0x101
+		0x55 is stored in 0x55
+
+15. IA32 process provides a bswap instruction that swaps the bytes of 32-bit register to change the order of the storage. 
+	Syntax: bswap r32 
+		ie. bswap <register>
+
+16. bswap instruction takes only 1 single 32-bit operand specifying using register addressing mode , 
+
+17. Operands of bswap cannot be immediate addressing mode or Memory operand. 
+
+18. bswap instruction along with mov instruction can be used to change the byte order of a memory variable. 
+
+19,. These type of instructions are needed when the data that is provided from other sources like network are sent in Big-Endian and we want it to convert it
+to little endian. 
+
+	Example:
+1		xchg (%ebx), %eax
+2		bswap %eax
+3		xchg (%ebx), %eax
+
+Explanation :
+
+Before Execution			
+Assume %eax = 0x11223344
+%ebx had 0x100  value:0x55667788
+
+		0x100	0x101	0x102	0x103
+		0x88	0x77	0x66	0x55	<-----------Value
+
+After Line 1
+%eax=0x55667788
+
+		0x100	0x101	0x102	0x103
+		0x44	0x33	0x22	0x11	<-----------Value
+
+After Line 2 
+
+%eax=0x88776655
+
+		0x100	0x101	0x102	0x103
+		0x44	0x33	0x22	0x11	<-----------Value
+
+After Line 3
+
+%eax=0x11223344
+
+%ebx-0x100=0x88776655
+
+		0x100	0x101	0x102	0x103
+		0x55	0x66	0x77	0x88	<-----------Value					
+
 		
