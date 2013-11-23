@@ -1004,4 +1004,238 @@ After Line 3
 		0x100	0x101	0x102	0x103
 		0x55	0x66	0x77	0x88	<-----------Value					
 
+====================================================================================================
+Condition Flags & their use.
+----------------------------------
+1. eflags register in an IA32 processor stores various flags corresponding to the result of last instruction executed. 
+
+2. Some Instructions do not modify the flags, for example bswap, xchg & mov , but instructions like "inc"	 changes few flags in eflags registers
+
+Flags:
+
+carry flag(cf):
+------------------
+	A.	Keeps the status of the final carry-out while computing the result of the last instruction set. 
+		Example: "add" instruction 
+	B.	While adding 2-numbers the carry flag contains the carry-out of the most significant bit.
+		Example: addl $4, %al
+		%al = %3f , 
+		%3f in decimal is 63 , 63 +4 = 67. so there is no -overflow, so carry flag will be zero. Which Means CF is not set 
 		
+	C. 	adding 4 to 0xFD , addl $4, 0xFD , the final value of register al will be 0x1 and CF is set 1, (which mean CF is enabled)
+		
+		when 0xFD is stored to al,  the actual value that is being stored is -3 , because al can store -128 to + 127
+		
+		Breakpoint 1, _start () at a1.s:5
+5               mov $0xfd, %al
+(gdb) n
+6               add $3, %al
+(gdb) info reg
+eax            0xfd     253  <-------------------------eax has 253
+ecx            0x0      0
+edx            0x0      0
+ebx            0x0      0
+esp            0xbffff5a0       0xbffff5a0
+ebp            0x0      0x0
+esi            0x0      0
+edi            0x0      0
+eip            0x8048056        0x8048056 <_start+2>
+eflags         0x212    [ AF IF ]
+cs             0x73     115
+ss             0x7b     123
+ds             0x7b     123
+es             0x7b     123
+fs             0x0      0
+gs             0x0      0
+
+	(gdb) info reg al
+al             0xfd     -3	<---------------------LSB of %eax, i.e al has -3
+
+when $3 is added to al ,  -3 + 3, So al is set to 0 , i,e the whole eax register will be 0x00000000
+253 + 3 , 256 , since we can store only 255 value, 1 gets carry forward  so 
+(gdb) n
+7               mov %al, %bl
+(gdb) info reg al
+al             0x0      0 	<-----------------al is set 0
+(gdb) info reg eax
+eax            0x0      0 <-----------------------------eax is set 0
+(gdb) info reg 
+eax            0x0      0
+ecx            0x0      0
+edx            0x0      0
+ebx            0x0      0
+esp            0xbffff5a0       0xbffff5a0
+ebp            0x0      0x0
+esi            0x0      0
+edi            0x0      0
+eip            0x8048058        0x8048058 <_start+4>
+eflags         0x257    [ CF PF AF ZF IF ]  <----------------------As we can see CF is set
+cs             0x73     115
+ss             0x7b     123
+ds             0x7b     123
+es             0x7b     123
+fs             0x0      0
+gs             0x0      0
+
+	
+		127	7f
+		-128	80
+		-127	81
+		-126	82
+		-125	83
+		-124	84
+		-123	85
+		-122	86
+		-121	87
+		-120	88
+		-119	89
+		-118	8a
+		-117	8b
+		-116	8c
+		-115	8d
+		-114	8e
+		-113	8f
+		-112	90
+		-111	91
+		-110	92
+		-109	93
+		-108	94
+		-107	95
+		-106	96
+		-105	97
+		-104	98
+		-103	99
+		-102	9a
+		-101	9b
+		-100	9c
+		-99	9d
+		-98	9e
+		-97	9f
+		-96	a0
+		-95	a1
+		-94	a2
+		-93	a3
+		-92	a4
+		-91	a5
+		-90	a6
+		-89	a7
+		-88	a8
+		-87	a9
+		-86	aa
+		-85	ab
+		-84	ac
+		-83	ad
+		-82	ae
+		-81	af
+		-80	b0
+		-79	b1
+		-78	b2
+		-77	b3
+		-76	b4
+		-75	b5
+		-74	b6
+		-73	b7
+		-72	b8
+		-71	b9
+		-70	ba
+		-69	bb
+		-68	bc
+		-67	bd
+		-66	be
+		-65	bf
+		-64	c0
+		-63	c1
+		-62	c2
+		-61	c3
+		-60	c4
+		-59	c5
+		-58	c6
+		-57	c7
+		-56	c8
+		-55	c9
+		-54	ca
+		-53	cb
+		-52	cc
+		-51	cd
+		-50	ce
+		-49	cf
+		-48	d0
+		-47	d1
+		-46	d2
+		-45	d3
+		-44	d4
+		-43	d5
+		-42	d6
+		-41	d7
+		-40	d8
+		-39	d9
+		-38	da
+		-37	db
+		-36	dc
+		-35	dd
+		-34	de
+		-33	df
+		-32	e0
+		-31	e1
+		-30	e2
+		-29	e3
+		-28	e4
+		-27	e5
+		-26	e6
+		-25	e7
+		-24	e8
+		-23	e9
+		-22	ea
+		-21	eb
+		-20	ec
+		-19	ed
+		-18	ee
+		-17	ef
+		-16	f0
+		-15	f1
+		-14	f2
+		-13	f3
+		-12	f4
+		-11	f5
+		-10	f6
+		-9	f7
+		-8	f8
+		-7	f9
+		-6	fa
+		-5	fb
+		-4	fc
+		-3	fd
+		-2	fe
+		-1	ff
+
+Zero Flag:
+	A.  Zero flag is set to 1 if the result of the last instruction (flag modifying) is 0 
+	
+	Example:
+			mov $0xfd, %al  # al has value -3
+			addl $3, %al   # -3 + 3  is 0 , so result of this instruction is 0 so, ZF is set 
+	
+		
+	B. Zero flag is set to 0 , if the result of the last instruction is not 0
+	
+			movl $0xfd , %al 	# al has -3
+			addl $2, %al   # -3 + 2  is -1,  So zero flag is not set. 
+			
+Sign Flag:
+	
+	A. Sign Flag stores the sign of the result of the last flag-modifying instruction. 
+	
+	B. This flag is used for implementing arithmetic using 2's complement representation for the numbers
+	
+	C. most significant bit of number is 1 if the number is negative. 
+	
+	d. Positive numbers are represented when Most significant bit is set to 0
+	
+	E. Sign Flag is set 1 , if the result of a last flag-modifying instruction is a negative number
+	
+	F. Sign  flag is set 0, if the result of the lsat flag-modifying instruction is postivie number
+	
+
+Parity Flag:
+	
+	A. 		
