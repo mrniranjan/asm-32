@@ -26,8 +26,7 @@ these addresses , So instructions are labelled, and this label is referred in Ot
 5.        movl $1, %eax  
 6.        movl $100, %ebx 
 7,.       int $0x80      
-
-In the above code , the instructions from lines 5,6,7 are labelled with "_start": 
+ the above code , the instructions from lines 5,6,7 are labelled with "_start": 
 
 6. _start defines the address of the instruction in line 5:
 
@@ -1235,7 +1234,345 @@ Sign Flag:
 	
 	F. Sign  flag is set 0, if the result of the lsat flag-modifying instruction is postivie number
 	
+	Example:
+		mov $0xfd, %al
+		movl $2, %al , #-3 + 2 is -1 , so sign flag is set 
+		
+		(gdb) list
+1       .section .data
+2       .section .text
+3       .globl _start
+4               _start:
+5                       mov $0xfd, %al
+6                       add $2, %al
+7                       movl $1, %eax
+8                       int $0x80
+9
+(gdb) b 4
+Breakpoint 1 at 0x8048054: file a3.s, line 4.
+(gdb) r
+Starting program: /home/ashok/practice/new/a3 
+
+Breakpoint 1, _start () at a3.s:5
+5                       mov $0xfd, %al
+(gdb) n
+6                       add $2, %al
+
+(gdb) n
+7                       movl $1, %eax
+(gdb) info reg
+eax            0xff     255
+ecx            0x0      0
+edx            0x0      0
+ebx            0x0      0
+esp            0xbffff5a0       0xbffff5a0
+ebp            0x0      0x0
+esi            0x0      0
+edi            0x0      0
+eip            0x8048058        0x8048058 <_start+4>
+eflags         0x286    [ PF SF IF ] <----------------------Sign flag is set 
+cs             0x73     115
+ss             0x7b     123
+ds             0x7b     123
+es             0x7b     123
+fs             0x0      0
+gs             0x0      0
+(gdb) info reg al
+al             0xff     -1
+
+(gdb) info reg
+eax            0xfd     253
+ecx            0x0      0
+edx            0x0      0
+ebx            0x0      0
+esp            0xbffff5a0       0xbffff5a0
+ebp            0x0      0x0
+esi            0x0      0
+edi            0x0      0
+eip            0x8048056        0x8048056 <_start+2>
+eflags         0x212    [ AF IF ]
+cs             0x73     115
+ss             0x7b     123
+ds             0x7b     123
+es             0x7b     123
+fs             0x0      0
+gs             0x0      0
+
+	
 
 Parity Flag:
 	
-	A. 		
+	A. 		Parity Flag stores the parity status of the least significant byte of the result of the last flag-modifying instruction 
+			PF is set to 1  if the LSB of the result has even number of 1's is set to 0 if the number is odd
+			
+			Example:
+			1       .section .data
+2       .section .text
+3       .globl _start
+4               _start:
+5                       mov $0xfd, %al
+6                       add $2, %al
+7                       movl $1, %eax
+8                       int $0x80
+9
+(gdb) b 4
+Breakpoint 1 at 0x8048054: file a3.s, line 4.
+(gdb) r
+Starting program: /home/ashok/practice/new/a3
+
+Breakpoint 1, _start () at a3.s:5
+5                       mov $0xfd, %al
+(gdb) n
+6                       add $2, %al
+(gdb) info reg
+eax            0xfd     253
+ecx            0x0      0
+edx            0x0      0
+ebx            0x0      0
+esp            0xbffff5a0       0xbffff5a0
+ebp            0x0      0x0
+esi            0x0      0
+edi            0x0      0
+eip            0x8048056        0x8048056 <_start+2>
+eflags         0x212    [ AF IF ]
+cs             0x73     115
+ss             0x7b     123
+ds             0x7b     123
+es             0x7b     123
+fs             0x0      0
+gs             0x0      0
+(gdb) n
+7                       movl $1, %eax
+(gdb) info reg
+eax            0xff     255
+ecx            0x0      0
+edx            0x0      0
+ebx            0x0      0
+esp            0xbffff5a0       0xbffff5a0
+ebp            0x0      0x0
+esi            0x0      0
+edi            0x0      0
+eip            0x8048058        0x8048058 <_start+4>
+eflags         0x286    [ PF SF IF ]
+cs             0x73     115
+ss             0x7b     123
+ds             0x7b     123
+es             0x7b     123
+fs             0x0      0
+gs             0x0      0
+
+Example:2
+2       .section .text
+3       .globl _start
+4               _start:
+5                       mov $0xfd, %al
+6                       add $3, %al
+7                       movl $1, %eax
+8                       int $0x80
+9
+(gdb) b 4
+Breakpoint 1 at 0x8048054: file a3.s, line 4.
+(gdb) r
+Starting program: /home/ashok/practice/new/a3
+
+Breakpoint 1, _start () at a3.s:5
+5                       mov $0xfd, %al
+(gdb) n
+6                       add $3, %al
+(gdb) info reg
+eax            0xfd     253
+ecx            0x0      0
+edx            0x0      0
+ebx            0x0      0
+esp            0xbffff5a0       0xbffff5a0
+ebp            0x0      0x0
+esi            0x0      0
+edi            0x0      0
+eip            0x8048056        0x8048056 <_start+2>
+eflags         0x212    [ AF IF ]
+cs             0x73     115
+ss             0x7b     123
+ds             0x7b     123
+es             0x7b     123
+fs             0x0      0
+gs             0x0      0
+(gdb) info reg al
+al             0xfd     -3
+(gdb) n
+7                       movl $1, %eax
+(gdb) info reg al
+al             0x0      0
+(gdb) info reg
+eax            0x0      0
+ecx            0x0      0
+edx            0x0      0
+ebx            0x0      0 
+esp            0xbffff5a0       0xbffff5a0
+ebp            0x0      0x0
+esi            0x0      0
+edi            0x0      0
+eip            0x8048058        0x8048058 <_start+4>
+eflags         0x257    [ CF PF AF ZF IF ]
+cs             0x73     115
+ss             0x7b     123
+ds             0x7b     123
+es             0x7b     123
+fs             0x0      0
+gs             0x0      0
+
+
+Overflow Condition:
+Over flow flag stores the overflow condition of the result of the last flag-modifying instruction. 
+while sensing the overflow, signed arithmetic is taken in to consideration. 
+
+
+(gdb) list
+1       .section .text
+2       .globl _start
+3               _start:
+4                       mov $0x7f, %al
+5                       add $1, %al
+6                       movl $1, %eax
+7                       int $0x80
+8
+(gdb) b 4
+Breakpoint 1 at 0x8048054: file a4.s, line 4.
+(gdb) r
+Starting program: /home/ashok/practice/new/a4
+
+Breakpoint 1, _start () at a4.s:4
+4                       mov $0x7f, %al
+(gdb) n
+5                       add $1, %al
+(gdb) info reg
+eax            0x7f     127
+ecx            0x0      0
+edx            0x0      0
+ebx            0x0      0
+esp            0xbffff5a0       0xbffff5a0
+ebp            0x0      0x0
+esi            0x0      0
+edi            0x0      0
+eip            0x8048056        0x8048056 <_start+2>
+eflags         0x212    [ AF IF ]
+cs             0x73     115
+ss             0x7b     123
+ds             0x7b     123
+es             0x7b     123
+fs             0x0      0
+gs             0x0      0
+(gdb) info reg al
+al             0x7f     127
+(gdb) n
+6                       movl $1, %eax
+(gdb) info reg al
+al             0x80     -128
+(gdb) info reg
+eax            0x80     128
+ecx            0x0      0
+edx            0x0      0
+ebx            0x0      0
+esp            0xbffff5a0       0xbffff5a0
+ebp            0x0      0x0
+esi            0x0      0
+edi            0x0      0
+eip            0x8048058        0x8048058 <_start+4>
+eflags         0xa92    [ AF SF IF OF ]
+cs             0x73     115
+ss             0x7b     123
+ds             0x7b     123
+es             0x7b     123
+fs             0x0      0
+gs             0x0      0
+
+
+Auxiliary Flag (AF)
+--------------------
+1. This flag contains carry-out from bit 3 of the result of the flag modifying instruction . 
+
+2. This flag is primary used for implementing Binary coded decimal representation. 
+
+====================================================================================================
+conditions:
+1. Several instructions have a conditional  execution in IA32 processors
+
+2. Instructions behave in one way if the condition is true & in another way if the condition is false. 
+
+3. Conditions are determined by CPU flags
+
+4. Many conditions combine various flags in certain ways. 
+
+5. There are 16 number of conditions supported by IA32 processors by combining various flags. 
+
+
+1. Equal (E) or Zero (Z)
+	
+	-> This condition is true if Zero Flag (ZF) is set to 1
+	-> Example: test if 2 numbers are equal or not.  This is checked  by subtracing one by another , If two numbers are equal ZF is set 1
+	
+2. Not Equal (NE) or Not Zero(NZ)
+	-> Condition is opposite of previous condition. 
+	-> This condition is true when ZF is not set or ZF is 0
+
+3. Above (a) or Neither Below or Equal (nbe)
+
+	-> This condition is primarily used for the comparision of unsinged Numbers		
+	->  Example:  Consider numbers 52 & 25 , if  when 25 is subtracted from 52 , it should not result in a borrow or zero. 
+	-> This condition is true if CF=0 & ZF=0 , if any of the two flags is 1, condition is false
+
+4. Below or Eual (be) or Not Above (na)
+	->This condition is inverse of above condition (nbe) and refers to condition when CF=1 or ZF=1 
+	
+5. Above or Equal (ae) or Not Below (nb) or No carry (nc) 
+
+	-> This condition is also used in connection with comparition of unsinged numbers
+	-> Comparision evaluates to true if CF=0 
+	-> For unsgned numbers "above or equal" to condition is true when subtraction of a number from another does not result in any carry
+
+6. Below (b) or Neither Above or Equal (nae) or carry
+	-> This condition is inverse of previous condition & refers to case when CF=1
+
+7. Greater(g) or Neigher less Nor equal (nle)
+
+	-> This condition is used in implementing decisions based on signed arithmetic & represents the case when comparision of two numbers  results
+	in a number that is positive (no overflow) & is not zero. 
+		when ZF=0, SF=0
+
+8. Less or Equal (le) or Not Greater	(ng)
+	->This condition is inverse of above condition (nle) , and refers to case when ZF=1 or SF is set. 
+	
+9. Greater or Equal (ge) or Not less (nl)
+	->This is used for signed number comparision & represents the case  when Sign Flag & OF is set 
+
+10. Less(1) or Neither Greater Nor Equal (nge)
+	->This condition is inverse of above condition (9th condition), when SF & OF is not set 
+
+11. Overflow (o)
+	->This condition refers to the case when OF=1 , used primarily in signed arithmetic
+12. Not Overflow (no)
+	->This condition is inverse of above condition (11th) , when OF is not set
+13. Sign (s)
+	-> Refers to case when result of last flag-modifying instruction resulted in a negative number (SF)
+14. No sign (ns)
+	-> Inverse of above condition . where result of last flag modifying instruction resulted in positive number 
+15. Parity (p) or Parity Even (pe)
+	-> PF stores the even parity status of the last flag-modifying instruction  , when PF =1
+16.  No parity or Parity odd (po)
+	-> Inverse of 15th condition , when PF = 0
+
+Conditional Data Movements:
+--------------------------------------
+
+1. IA32 processors also support conditional data movement instructions
+
+2. Instructions can be used conditionally for moving 16-bit or 32-bit value from one general purpose register to another
+
+3. These instructions can also be used to move conditionally from one memory location to a 16-bit or 32-bit register
+
+4. These conditional move instructions cannot be used on 8-bit registers
+
+	Example: cmovcc source, dest
+
+5. Source can be register or memory (16 or 32-bit in size)
+6. dest can only be a register (16 or 32) 
+	
