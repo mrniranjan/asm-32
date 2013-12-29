@@ -698,7 +698,7 @@ Stack:
 	
 	vi.	Nomencalature used in stack like "top" is actually (physically) the bottom of the stack's Memory
 	
-		________________________________________________
+		________________________________________________________________________________________________
 		|29 		|28		|27		|26		|25		|25	 	|
 		| ----------	| ----------	| --------	| ----------	| ----------	| ----------	| <--------Stack
 		|23		|22		|21		|20		|19		|18		|<--------------------------------Top
@@ -709,7 +709,7 @@ Stack:
 		| ----------	| ----------	| ----------	| ----------	| ----------	| ----------	| 
 		|5	O	|4	R	|3	L	|2	D	|1	!	|0	!	|	
 		| ----------	| ----------	| ----------	| ----------	| ----------	| ----------	| 
-
+		_________________________________________________________________________________________________	
 	vii. 	From the above Memory representation We can see that 
 		A. Memory addressing starts from 29 and moves down to 0 (more like fffffff to 0000000)
 		B. Top is bottom of the memory 
@@ -727,7 +727,7 @@ Stack:
 	
 	Examples:
 
-		--------------------------------------------------------------------------------
+		-----------------------------------------------------------------------------------------------
 		|29 	H	|28		|27		|26		|25		|25	 	|
 		| ----------	| ----------	| --------	| ----------	| ----------	| ----------	| <--------Stack
 		|23		|22		|21		|20		|19		|18		|
@@ -735,7 +735,7 @@ Stack:
 			
 			In the above example We added H to the stack, So now top (%esp) points to address 29
 
-		--------------------------------------------------------------------------------
+		------------------------------------------------------------------------------------------------
 		|29 	H	|28	E	|27		|26		|25		|25	 	|
 		| ----------	| ----------	| --------	| ----------	| ----------	| ----------	| <--------Stack
 		|23		|22		|21		|20		|19		|18		|
@@ -743,7 +743,7 @@ Stack:
 
 		We added(pushed) E to the stack, So now top (%esp) points to E
 		
-		--------------------------------------------------------------------------------
+		------------------i-----------------------------------------------------------------------------
 		|29 	H	|28	E	|27	L	|26	L	|25	O	|25	W 	|
 		| ----------	| ----------	| --------	| ----------	| ----------	| ----------	| <--------Stack
 		|23	O	|22	R	|21	L	|20	D	|19		|18		|
@@ -767,6 +767,22 @@ Stack:
 	xvi.	If we do the operation, 
 			movl %esp, %eax
 		The above will copy the address to which currently top points to %eax register. 
+
+	xvii.	In the C language calling convention, stack is the key element for implementing a functions local variables, parameters & return address.
+
+	xix.	Before executing a function, Program pushes all the parameters for the function on to the stack in the reverse order that they are documented.
+		Example: if we sum(a,b), then 
+
+                ------------------------------------------------------------------------------------------------
+                |29     b       |28     a       |27             |26             |25             |25             |
+                | ----------    | ----------    | --------      | ----------    | ----------    | ----------    | <--------Stack
+                |23             |22             |21             |20             |19             |18             |
+                | ----------    | ----------    | ----------    | ----------    | ----------    | ----------    |
+
+		As we can see we have b first pushed and then a, so now top points to 28 (i.e esp register has address 28)
+
+	xx.	The program uses call function indicating which function to start. 
+	
 ====================================================================================================
 Chapter 3:	Basic Data Manipulation
 -----------------------------------------------------
