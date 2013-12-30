@@ -1037,9 +1037,43 @@ carry flag(cf):
 		%al = %3f , 
 		%3f in decimal is 63 , 63 +4 = 67. so there is no -overflow, so carry flag will be zero. Which Means CF is not set 
 		
-	C. 	adding 4 to 0xFD , addl $4, 0xFD , the final value of register al will be 0x1 and CF is set 1, (which mean CF is enabled)
+	C. 	adding 4 to 0xFD , addl $4, 0xFD , the final value of register al will be 0x0 and CF is set 1, (which mean CF is enabled)
 		
-		when 0xFD is stored to al,  the actual value that is being stored is -3 , because al can store -128 to + 127
+		when 0xFD is stored to al,  the actual value that is being stored is -3 (incase of signed) or 253 (unsigned),
+		253 when converted to binary is: 11111101, and 3 in binary is 00000011, 
+		11111101
+	+	00000011
+		--------
+	       100000000
+		---------
+		1 is carried out 
+
+
+(gdb) break 3
+Breakpoint 1 at 0x8048054: file cf1.s, line 3.
+(gdb) list
+Line number 8 out of range; cf1.s has 7 lines.
+(gdb) r
+Starting program: /home/ashok/practice/test/cf1 
+
+Breakpoint 1, _start () at cf1.s:4
+4			movb $0xfd, 
+(gdb) n
+5			addb $3, %al
+(gdb) p/u $al
+$1 = 253			<-----------------al is 253 (unsigned)
+(gdb) p/d $al
+$2 = -3				<------------------al is -3 (signed)
+(gdb) n
+6			movl $1, %eax
+(gdb) p/d $al
+$3 = 0			<------------------------------(-3 + 3=0) signed
+(gdb) p/u $al
+$4 = 0			<-------------------------------(253 + 3 256, i.e since 255 can only be stored, we have a carry out 
+							making eax register to all zerors 
+(gdb) info reg eflags
+eflags         0x257	[ CF PF AF ZF IF ]	<-------------we could see carry flag set in eflags register
+
 		
 		Breakpoint 1, _start () at a1.s:5
 5               mov $0xfd, %al
@@ -1591,4 +1625,54 @@ Conditional Data Movements:
 
 5. Source can be register or memory (16 or 32-bit in size)
 6. dest can only be a register (16 or 32) 
-	
+
+7. The condition is specified using the cc field in the instruction.
+
+Example:
+	1. set a value in the register eax according to memory variable "cond"
+	2. If the value in "cond" is between 1 & 5 (both inclusive) , the register is set to 0, else it is set to -1
+
+Example1:
+### This example illustrates conditional move 
+### We declare a memory variable "cond" which has value 3
+# we are using conditional move to check if the value in cond is between 1 & 5 
+# if it's between 1 & 5, %ebx will have 0, else it will have -1
+.section .data
+cond:
+.long 3
+.section .text
+.globl _start
+_start:
+        mov $0, %ebx
+        mov $-1, %ecx
+        cmpl $1, cond
+        cmovb %ecx, %ebx
+        cmpl $5, cond
+        cmova %ecx, %ebx
+
+        movl $1, %eax
+        int $0x80
+
+Example2:
+
+.section .data
+lower:
+.long 10
+upper:
+.long 20
+num:
+.long 11
+.section .text
+.globl _start
+_start:
+        movl $0, %ebx
+        movl $-1, %ecx
+        movl num, %edx
+        cmpl lower, %edx
+        cmovb %ecx, %ebx
+        cmpl upper, %edx
+        cmova %ecx, %ebx
+
+        movl $1, %eax
+        int $0x80 
+
