@@ -736,6 +736,36 @@ then stored in the memory location whose address is available in register esp
 
 
 Example:
+1. If we wish to push contents of register eax on to stack , registers esp will be decremented by 4 and then value of register
+eax will be stored in memory whose address is given in esp. 
+
+Example:
+
+	0x11BC		0x11BD		0x11BE		0X11BF		0X11C0
+										
+
+Assume Current address of %esp is 0x11C0, 
+
+Before push
+%eax:	0x13579BDF
+
+After push operation
+        0x11BC          0x11BD          0x11BE          0X11BF          0X11C0
+        0XDF		0X9B		0X57		0x13		
+%eax: 0x13579BDF
+The contents of the memory operation is shwon above
+
+I. Pop operation is reverse of push operation. In the case of pop operation, first the appropriate number of bytes are read
+from memory addressed by register esp and then the register esp is incremented in sisze of the data operand . 
+
+J. Machine stack in IA32 processors is very powerful and can be used in several ways:
+	-> The most important use of stack is to keep the return address for the function calls
+	-> Another use of stack is to temporarily save the contents register & recover them later
+	-> Implementations of high-level Programming languages typically use stack to pass parameters to functions 
+	-> Local variables of high-level langauge function are typically alloted on to the stack. 
+	-> Execution control of recursive function is implemented using a stack where the functions are returned in reverse
+order of the call. The function that is called at the end returns first and the function invocation that is done in the beginning
+is concluded last.
 
 
 	i.	Stack is a pile of papers on desk , which can be added to indefinitely 
@@ -834,7 +864,83 @@ Example:
 		As we can see we have b first pushed and then a, so now top points to 28 (i.e esp register has address 28)
 
 	xx.	The program uses call function indicating which function to start. 
-	
+
+Stack related data Movements:
+------------------------------
+1. The stack related data movements instructions in IA32 processors implement push and pop operations on the stack
+2. Syntax of push and pop are:
+	push src
+	pop dest
+3. The src operand in the case of "push" instruction can be 
+	->Immediate constant
+	->Register
+	->Memory variable
+4. The size of the operand can only be 16-bits or 32-bits, 8-bit operands cannot be pushed
+
+5. If the operand of the "push"instruction is specified using immediate addressing or memory addressing , the size
+of the operand is not implicitly known 
+
+6. In order to specify the size of the operand, the "push" instruction can we suffixed with "w" or "l" to indicate 16-bit or
+32-bit operations respectively (ex: pushl, pushw)
+
+7.If the operand is an immediate constant or is a memory variable w or l in pushw or pushl instruction must be used to 
+provide the size of the operand
+
+8. In programs often several registers are saved on the stack at the same time & later restored. IA32 provides another 
+set of push and pop instructions for this purpose
+
+9. "pusha" pushes all eight general purpose registers on the stack. 
+
+10. popa instructoin removes 32-bit registers from the stack in reverse order of the push 
+
+11. pushf instruction pushes 32-bit eflags register on to stack and popf instruction is not opposite of pushf. 
+
+
+
+Handling Unsigned Numbers:
+-------------------------
+1. IA32 architecture supports both unsigned & signed numbers. 
+2. For the signed numbers, 2's complement notation is used. 
+3. In 2's complement representation the most significant bit of an operand is 1 for negative 
+numbers and 0 for positive numbers
+
+4. IA 32 architecutre provies several instructions that change the size of the signed numbers.
+Ex: 8-bit data item can be converted in to 16-bit data item using instruction "cbw"
+
+5. while converting data item to a larger size, the sign bit can be duplicated to all the extra bits. 
+
+Example: consider a byte value 0x08,  the equivalent 16-bit size is 0x0008, which is obtained  by duplicating
+sign bit(0) to all the extra bits in 16-bit number.
+
+If the number originally was negative , the extra bit will have all bits set to 1. 
+
+6. Following instructions in IA32 architecture are provided to convert data sizes for the signed numbers:
+	cbtw
+	cwtd
+	cwtl
+	cltd
+	movsbw src, dest
+	movsbl src, dest
+	movswl src, dest
+
+7. cbtw: (also known as cbw) converts 8-bit signed numbers stored in al to 16-bit signed number and stores it in ax
+
+8. cwtd(cwd): converts 16-bit signed number stored in ax to 32-bit number , Most significant 16-bits of resultant 32-bit number are returned in 
+register dx while register ax represents lower 16bits 
+
+9. cwtl(cwde) perfrms similar operation as of cwtd execept that it returns 32-bit number in register eax
+
+10. cltd (cdg) converts 32-bit number to 64-bit number. input 32-bit number in eax and output goes in edx and eax
+
+11. movs.. instructions are generic as they conver 8-bit - 16-bit (movsbw), 8-bit to 32-bit (movsbl) and 16-bit to 32bit (movswl)
+
+12. There are few more instructions in IA32 architecture to convert data sizes for unsigned numbers
+movzbw	src, dest
+movzbl	src, dest
+movzwl 	src, dest
+	src can be register or memory
+	dest can only be a register
+
 ====================================================================================================
 Chapter 3:	Basic Data Manipulation
 -----------------------------------------------------
@@ -893,7 +999,7 @@ After Execution of line2: %ebx	= 0x30004000
 		
 		0x200	0x201	0x202	0x203
 		0x30004000						<----------Value		
-
+ 
 After execuion of Line3: %eax = 0x10002000, %ebx=0x30004000
 		0x100	0x101	0x102	0x103
 		0x30004000						<-----------Value
@@ -1727,5 +1833,58 @@ _start:
 
         movl $1, %eax
         int $0x80 
+=======================================================================================================
+Chapter-4:  Control Transfer
 
+1. IA32 processors provide a special purpose register called eip
+
+2. This register stores the address of Memory location from where the next Machine instruction is read
+
+	CPU							Memory
+-------------------------------			--------------------------------------------------------------------		
+eip	| Instruction decoder	
+0x100						0x100		0x101		0x102		0x103		0x104 <---Address
+------------------------------			----------------------------------------------------------------------
+eax|ebx|ecx|edx|ebp|esp|edi|esi			incl %eax							      <---value
+-------------------------------
+Arithmatic Logical Unit
+----------------------------------
+
+
+3. Each assembly language instruction is first translated in to machine instruction by an assembler
+
+4. After machine instruction is fetched from memory, the register eip is incremented by the size of the instruction 
+
+Step1: start
+	|
+Step2:	Read EIP
+	|
+Step3:	Fetch instruction from the memory 
+	|
+Step4:	execute instruction
+	|
+Step5:	Increment the address to the size of the instruction executed
+	|
+Step6:	Update EIP with next address
+	|
+Step7:	Repeat Step2
+
+
+
+5. When the execution of the instruction is completed, the next instruction is read from the memory (which is immediate address) 
+
+6. Control transfer instruction modifies "eip" register implicitly so that next instruction is read from the location different from 
+immediate address
+
+Step1: start
+        |
+Step2:  Read EIP
+        |
+Step3:  Fetch instruction from the memory  
+        |
+Step4:  Check if the instruction contains control transfer instruction
+        |
+Step5:  Update EIP with the address (memory address) specified by control transfer instruction
+        |
+Step7:  Execute step-2
 
