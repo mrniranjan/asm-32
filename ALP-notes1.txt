@@ -686,6 +686,58 @@ is called "calling convention"
 
 Stack:
 --------
+A.	IA32 processors implement stack in memory:
+B.	Stack is a data structure in which data items are added and removed in the last in first out(lifo) order
+
+Example:
+	Function f1		Function f3	Function f2		functionf4
+	-----------	    |-->----------   |->-----------	     |->-----------
+	statement1	    |	statement 1  |	statement1	     |	statement1
+	statement2	    |	statement 2  |	statement2	     |	statement2
+	...		    |	End function |	call functionf4------|	statement3
+	----		    |	^	     |	Statement X<-----------	end function
+	..		    |	|	     |	......			
+	call functionf2:<---|---|------------|	Statement N	
+	statement X <-------|---|--------------end function
+	call to functionf3--|   |
+	statement N		|
+	end function<-----------|
+
+	->In the above example, functionf1 makes 2 calls to function f2 & function f3 respectively
+	->Function f2 in turn makes one call to function f4 
+	->The execution starts with function f1 , execution continues till call is made to f2, 
+	->At this time, the execution control is transferred to function f2,
+	->After execution of f2 is completed, it execution control is transferred back to f1
+	
+	->The above semantics is maintained when function f2 makes a call to function f4. 
+	->While executing fuction f4, the execution path can be traced as:
+		f1->f2->f4
+	->When f4 function finishes, its execution control is returned back to f2, 
+	->Similarly when fuction f2 completes, execution control is handed back to f1
+
+	->There is a natural order of passing control upon calls to function and the reverse order
+	of passing control upon return from the function. Stack is an obvious choice here.
+
+C. Each time a function is called , the return address is pushed to stack. 
+
+D. The top of the stack therefore provides address within the function to which control must returnwhen execution of 
+the called function is over
+
+E. IA32 Processors provide a mechanism to implement stack and several instructions that use this stack implicitly
+
+F. The actual storage of the stack is created in the processor memory along with other items such as program instructions,
+data etc. 
+
+G. The top of the stack is represented by register esp, which stores the memory address of the location where the last
+data item was added. 
+
+H.Upon each push register esp is first decremented by the number of bytes in the data item. The value of the data item is 
+then stored in the memory location whose address is available in register esp
+
+
+Example:
+
+
 	i.	Stack is a pile of papers on desk , which can be added to indefinitely 
 	
 	ii.	Things that we are working currently is always on the top. 
@@ -1675,4 +1727,5 @@ _start:
 
         movl $1, %eax
         int $0x80 
+
 
