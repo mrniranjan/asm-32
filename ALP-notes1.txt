@@ -1888,3 +1888,271 @@ Step5:  Update EIP with the address (memory address) specified by control transf
         |
 Step7:  Execute step-2
 
+Specifying Target Address:
+===========================
+1. There are several ways in which the destination addres may be specified in the control transfer instruction
+2. In assembly language address of the instructions are typically defined by the use of labels attached 
+to the instruction
+
+Example:
+.section .text
+.globl _start
+_start:
+	movl $2, %ebx
+	movl $1, %eax
+	int $0x80
+
+In the above program _start label defines(symbolises) the address of the first instruction "movl $2,%ebx"
+
+
+3. Symbolic names are replaced by the address of the instruction when assembler translates to machine language
+
+4. IA32 process, the target address can be specified to control transfer instructions in following ways:
+	4.1->Immediate constant (Immediate address)
+	4.2->Address specified in register (Register/indirect addressing)
+	4.3->Addresses specified in memory (Memory addressing , pointers)
+
+4.1: Immediate Addressing
+-------------------------
+
+1. In immediate addressing mode, the address of the target instruction is specified in the instruction as constant
+	ex:	jmp 0x8042521
+
+2. Since in the assemly language we use symbolic names(for addresses), or labels (_start), these labels can be used
+as immediate constants in the control transfer instructions
+	ex:
+		.section .text
+		.globl _start
+		_start:
+			movl $2, %ebx
+			jmp end_program
+			movl $1, %ecx
+			movl $2, %edx
+		end_program:
+			movl $1, %eax
+			int $0x80
+
+3. In GNU/Linux assembly language, the syntax used to specify the operand as immediate constant is different for control transfer
+instruction when compared to other instructions
+
+		Example:
+			.section .data
+			data:
+			.long 5
+			.section .text
+			.globl _start
+			_start:
+			movl $data, %ebx
+                        jmp end_program
+                        movl $1, %ecx
+                        movl $2, %edx
+                end_program:
+                        movl $1, %eax
+                        int $0x80
+
+In the above program movl $data, %ebx is also immediate addressing mode, but it's different form instruction jmp end_program
+
+
+4. Immediate operands of the control transfer instruction are specified without using a $ before the immediate operand
+		Example:
+		1	.section .data
+		2	data:
+		3	.long 4,3,2,1
+		4	.section .text
+		5	.globl _start
+		6	_start:
+		7		movl $0,%edi
+		8		movl data_items(,%edi,4), %ebx
+		9	start_loop:
+		10		cmpl $1, %ebx
+		11		je end_loop
+		12		incl %edi
+		13		addl data(,%edi,4), %ebx
+		14		jmp start_loop
+		15	end_loop:
+		16		movl $1, %eax
+		17		int $0x80
+
+In the above program jmp start_loop in line 14 transfers the control to the first instruction "cmpl $1, %ebx" as start_loop is
+a label or a symbol which translates to address of instruction "cmpl $1, %eax"
+
+
+5. The machine instruction for IA32 processors converts(encodes) the target address differently when it's is specifed as immediate constant in 
+assembly language
+
+6. The conversion(encoding) mechanism of the machine instruction can specify the the address in following ways
+	a. As an offset relative to the address of jmp instruction (also called eip relative address)
+	b. As an absolute address
+
+
+In the first case(a), the offset is with respect o the address of the next instruction(i.e immediately after jmp instruction), 
+This simplifies the execution because:
+	->value stored in register eip will be address of the next instruction
+	->During execution the offset can be added to the eip register
+
+The above method is called eip relative addressing mode:
+
+eip relative addressing mode:
+	
+1. The address of the target instruction can be specified as an offset from the address of the current instruction(in reality
+as an offset from the address of next instruction)
+
+2. Since eip contains the address of the next instruction , the address of the target instruction is obtained by adding offset 
+to the value of eip register
+
+Examples:
+1. 
+
+(gdb) list
+1       .section .data
+2       data:
+3       .long 5
+4       .section .text
+5       .globl _start
+6       _start:
+7               movl $data, %ebx
+8               jmp end_program
+9               movl $1, %ecx
+10              movl $2, %edx
+(gdb) x/6i $pc
+=> 0x8048074 <_start>:  mov    $0x804908c,%ebx
+   0x8048079 <_start+5>:        jmp    0x8048085 <end_program>
+   0x804807b <_start+7>:        mov    $0x1,%ecx
+   0x8048080 <_start+12>:       mov    $0x2,%edx
+   0x8048085 <end_program>:     mov    $0x1,%eax
+   0x804808a <end_program+5>:   int    $0x80
+
+
+As one can see the address that "start" symbolises is 0x8048074, that is at address 0x8048074, the instruction "movl $data, %ebx" 
+exists, this instruction starts from "0x8048074" and ends at "0x8048079", the next instruction "jmp end_program" starts from 0x8048079
+and ends at 0x804807b
+
+(gdb) info line *0x8048074
+Line 7 of "eip-relative1.s" starts at address 0x8048074 <_start> and ends at 0x8048079 <_start+5>.
+(gdb) info line *0x8048079
+Line 8 of "eip-relative1.s" starts at address 0x8048079 <_start+5> and ends at 0x804807b <_start+7>.
+(gdb) 
+
+
+when the line eip is at instruction "jmp end_program" which starts from 0x8048079, , the next immediate instruction after this is "0x804807b"
+, but the code needs to jump to address that end_program symbolises , which is at address "0x8048085", so in eip relative addressing what happens
+is
+
+The destination address that should be jumped is "0x8048085", the next instruction that should have been executed after jmp starts at "0x804807b" 
+so offset is calculated using 0x8048085-0x804807b, which is "a", (10 bytes), so an offset 10 is added to eip (which will be 0x804807b) 
+
+
+
+Absolute address:
+
+When  the addres of the target instruction is directly coded in the machine instruction, it is called absolute address.
+
+In GNU/Linux assembly language, the use of absolute address is specified by putting *
+
+
+Example:
+
+(gdb) list
+1       ### This program illustrates eip absloute addressing 
+2       ###
+3       .section .data
+4       data:
+5       .long 5
+6       .section .text
+7       .globl _start
+8       _start:
+9               movl $data, %ebx
+10              jmp *end_program
+(gdb) break 8
+Breakpoint 1 at 0x8048074: file eip-relative2.s, line 8.
+(gdb) r
+Starting program: /home/ashok/practice/test/eip-relative2 
+
+Breakpoint 1, _start () at eip-relative2.s:9
+9               movl $data, %ebx
+(gdb) x/6i $pc
+=> 0x8048074 <_start>:  mov    $0x8049090,%ebx
+   0x8048079 <_start+5>:        jmp    *0x8048089
+   0x804807f <_start+11>:       mov    $0x1,%ecx
+   0x8048084 <_start+16>:       mov    $0x2,%edx
+   0x8048089 <end_program>:     mov    $0x1,%eax
+   0x804808e <end_program+5>:   int    $0x80
+(gdb) info line *0x8048089
+Line 14 of "eip-relative2.s" starts at address 0x8048089 <end_program> and ends at 0x804808e <end_program+5>.
+(gdb) p *0x8048089
+$1 = 440
+(gdb) p/x *0x8048089
+$2 = 0x1b8
+(gdb) p/x *0x8048089
+$2 = 0x1b8
+(gdb) n
+10              jmp *end_program
+(gdb) n
+0x000001b8 in ?? ()
+(gdb) info reg eip
+eip            0x1b8    0x1b8
+
+
+As we can see when the program is at line 10, jmp *end program , where "end_program" symbolises address 0x8048089 , what happens it assumesthat it has to transfer the control to address specified at address 0x8048089 , and it will try to jump to that address.
+
+Register Addressing:
+--------------------
+The target address of a control transfer instruction may be specified using a register. 
+
+Upon execution of such a control transfer instruction, the contents of the specified register are copied to eip register
+there by transferring the control to an address given in the register
+
+syntax jmp *%eax
+
+Memory Addressing
+------------------
+1. In Memory addressing, the address of the target instruction is read from memory , 
+
+2. In GNU/Linux operating system, all addresses are 32-bit wide and therefore the address of the target instruction takes 4 memory
+locations for storage. 
+
+3. A * is required to prefixed to the memory operand as it is an indirect mode of specifying the target instruction
+
+Example:
+
+A. jmp *(%eax) specifies the base addressing, where the address of the target instruction is stored in memory location whose address
+is available in %eax
+
+example: if %eax had 0x8048084, and 0x8048084 contains 0x8048089, it would assume that address of the tar get instruction to be executed 
+is at 0x8048089
+
+B. jmp *(memvar)
+
+Assume memvar is at location 0x8048084 , and memvar has value "0x8048089" which is memory address, which contains the actual instruction, then
+jmp *(memvar) would read the address 0x8048089 and jump to location 0x8048089 to read the instruction
+
+C. Similarly jmp *table(%eax) , 
+
+%eax has 0x8048084
+0x8048084=10
+table = 0x8048079
+At location 0x8048079= 0x804807f
+
+first execute (%eax), that is get the contents of the location 0x8048084 , and go to memory location 0x8048084 and fetch value 10, 
+then *table is computed, which first get value 0x8048079 and get the value fetched at address 0x8048079, which is 0x804807f, 
+add 0x8048079+10 and jump to that address. 
+
+D. *table(%eax,%esi)
+
+E. *table(%eax,%esi,4)
+=========================================================================================================
+Some control transfer instructions
+
+1. Most commonly used control transfer instruction is jmp , syntax:
+	jmp target
+
+2. Target can be specified using any of the above addressing modes described earlier
+
+3. upon execution of jmp instruction, register eip is set to the new value. since the next instruction is read from the location whose address 
+is stored in eip register, the jmp instruction causes control of the program to be transferred to the new location
+
+
+4. IA32 also supports conditional control transfer. upon execution of such instructions, control is transferred to the new location only after specified 
+condition is evaluated to true. 
+ 
+
