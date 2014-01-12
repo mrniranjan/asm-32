@@ -12,9 +12,9 @@
 
 .section .data
 divisor:
-.byte -25
+.int -25
 dividend:
-.byte -125
+.int -125
 .section .text
 .globl _start
 _start:
@@ -28,15 +28,11 @@ _start:
 .type divide,@function
 divide:
 	pushl %ebp	#save old ebp register
-	movl %esp,%ebp	#use ebp register to access stack
-	
-	#We need to move dividend to edx, eax
-	#where msb is edx, lsb is eax
-	
-	movl $0, %edx		#edx is 0
+	movl  %esp,%ebp	#use ebp register to access stack
+	movl $-1, %edx		#edx is -1
 	movl 8(%ebp), %eax	#we move dividend to eax 
 	movl 12(%ebp), %ecx	#we store the divisor to ecx
-	idiv %ecx		#result i.e quotient is saved in eax
+	idiv %cx		#result i.e quotient is saved in eax
 	movl %ebp, %esp
 	popl %ebp
 	ret
