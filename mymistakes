@@ -1,0 +1,31 @@
+[ashok@mydevel nss]$ as max.asm -o max.o -gstabs+
+max.asm: Assembler messages:
+max.asm:23: Error: no such instruction: `loop_exit'
+
+.section .data
+data_items:
+.long 25,15,151,23,78,90,76,87,56
+
+.section .text
+.globl _start
+_start:
+        movl $0, %edi
+        movl data_items(,%edi,4), %eax
+        movl %eax, %ebx
+
+start_loop:
+        cmpl $0, %eax
+        je loop_exit
+        incl %edi
+        movl data_items(,%edi,4), %eax
+        cmpl %eax, %ebx
+        jle start_loop
+
+        movl %eax, %ebx
+        jmp start_loop
+
+loop_exit		<------------------Here. it should be loop_exit:
+        movl $1, %eax
+        int $0x80
+
+In the above program i failed to put colon after declaring the variable :
