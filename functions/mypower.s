@@ -1,5 +1,9 @@
 #This power function where 2 values x and y are pushed
 # to stack and the function calculates x raised to the power of y
+# TO compile use the below method:
+# as -gstabs+ -march=i386 mypower.s -o mypower.o
+# gcc -m32 mypower.o -o mypower
+	
 .section .data
 LC0:
 	.string "%d\n"
