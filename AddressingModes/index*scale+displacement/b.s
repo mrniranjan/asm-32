@@ -6,15 +6,14 @@ t1:
 _start:
         movl $0, %eax
         movl $12, %edi
-        movl t1, %ebx
+        movl t1(, %eax,4), %ecx
 start_loop:
-        cmpl %edi, %eax
+        cmpl $4, %eax
         je exit_prg
-        add $4, %eax
-        movl t1(%eax), %ecx
+        movl t1(, %eax, 4), %ecx
+        incl %eax
         addl %ecx, %ebx
         jmp start_loop
 exit_prg:
         movl $1, %eax
         int $0x80
-        

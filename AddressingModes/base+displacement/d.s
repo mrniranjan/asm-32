@@ -1,6 +1,7 @@
         .section .data
+
 t1:
-        .long 1,2,3,4
+        .long 2,4,6,8
         .section .text
         .globl _start
 _start:
@@ -12,9 +13,4 @@ start_loop:
         je exit_prg
         add $4, %eax
         movl t1(%eax), %ecx
-        addl %ecx, %ebx
-        jmp start_loop
-exit_prg:
-        movl $1, %eax
-        int $0x80
         
